@@ -1,0 +1,21 @@
+{
+  "name": "@kartagia/dicemodel",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --harmonize --recursive"
+  },
+  "keywords": [
+    "dice",
+    "model",
+    "javascript"
+  ],
+  "author": "Antti Kautiainen",
+  "license": "MIT",
+  "description": "",
+  "devDependencies": {
+    "chai": "^5.1.1",
+    "chai-as-promised": "^8.0.0",
+    "mocha": "^10.7.0"
+  }
+}
