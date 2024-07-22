@@ -5,11 +5,6 @@
  */
 
 /**
- * The parameters defining a simple die.
- * @typedef {Object} SimpleDieParams
- */
-
-/**
  * A random generator.
  * @callback Random
  * @returns {number} A random number between 0 (inclusive) and 1 (exclusive).
@@ -173,13 +168,12 @@ export class SimpleDie {
         );
     }
 
-
     /**
      * Create a new die.
      * @param {SimpleDieParams<TYPE>} [params] Die construction parameters. Defaults to the
      * default die with 6 sides from 1 to 6.
      */
-    constructor(params = /** @type {SimpleDieParams<TYPE>}*/ { sideCount: 6 }) {
+    constructor(params = /** @type {SimpleDieParams<TYPE>}*/ { sideCount: 6, sides: SimpleDie.createDieSides(6) }) {
         this._init(params);
     }
 
