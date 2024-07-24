@@ -7,6 +7,18 @@
 import { checkInteger } from "./integer.mjs";
 
 /**
+ * @typedef {import("./integer.mjs").ZeroInteger} ZeroInteger
+ */
+
+/**
+ * @typedef {import("./integer.mjs").PositiveInteger} PositiveInteger
+ */
+
+/**
+ * @typedef {import("./integer.mjs").NegativeInteger} NegativeInteger
+ */
+
+/**
  * The comparison result.
  * - An undefined value, if the values are not comparable.
  * - A negative integer, if the compared is less than the comparee.
@@ -27,8 +39,6 @@ import { checkInteger } from "./integer.mjs";
  * @template [TYPE=any]
  * @type {Compare<TYPE>}
  */
-
-
 export function DefaultComparison(compared, comparee) {
     try {
         return (a === b ? /** @type {ZeroInteger} */ 0 : (a < b ? /** @type {NegativeInteger} */ -1 : (b < a ? /** @type {PositiveInteger} */ 1 : undefined)));
