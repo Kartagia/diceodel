@@ -48,12 +48,17 @@ export function checkInteger(value, options = {}) {
     if (typeof value !== "number") {
         throw new SyntaxError(message);
     }
-    if (((allowUnsafe ? Number.isInteger : Number.isSafeInteger)(value) || (allowInfinity && (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY))) &&
-        (constraint === undefined || constraint(value))) {
-        return  /** @type {integer} */ value;
-    } else {
-        throw new SyntaxError(message);
+    if (Number.isSafeInteger(value)) {
+        return /** @type {Integer} */ value;
+    } else if (Number.isInteger(value)) {
+        if (allowUnsafe) {
+            return /** @type {Integer} */ value;
+        }
+
+    } else if (allowInfinity && (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY)) {
+        return /** @type {Integer} */ value;
     }
+    throw SyntaxError(message);
 }
 
 /**
