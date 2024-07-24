@@ -45,7 +45,7 @@ import { checkInteger, checkNegativeInteger, checkPositiveInteger, checkZero } f
  * @template [TYPE=number] The type of the rolled values.
  * @template [RESULT=TYPE] The result of the reroll.
  * @typedef {Object} RerollPolicy
- * @property {Readonly<ResultCombiner<TYPE,RESULT>>} combine Cobmine the roll.
+ * @property {ResultCombiner<TYPE,RESULT>} combine Cobmine the roll.
  * @property {Readonly<string>} description The description of the policy.
  */
 
@@ -53,7 +53,7 @@ import { checkInteger, checkNegativeInteger, checkPositiveInteger, checkZero } f
 /**
  * Keeper of the most recent dice with dice list result.
  * @tempalate [TYPE=number] The type of the rolled values.
- * @extends {RerollPolicy<TYPE, TYPE[]>}
+ * @implements {RerollPolicy<TYPE, TYPE[]>}
  */
 export class KeepLastCombiner {
 
@@ -91,18 +91,21 @@ export class KeepLastCombiner {
     }
 
     /**
-     * @type {ResultCombiner<TYPE, TYPE[]>}
+     * Combine the rolled values to the result values.
+     * @param {TYPE[]} roll The rolled values. 
+     * @returns {TYPE[]} The kept values from the rolled.
      */
     combine(roll) {
         if (Array.isArray(roll)) {
-            return roll.slice(Math.min(0, roll.length - this.count), roll.length);
+            return roll.slice(Math.max(0, roll.length - this.count));
         } else {
-
+            throw SyntaxError(INVALID_ROLL_MESSAGE);
         }
     }
 }
 
 
+const INVALID_ROLL_MESSAGE = "Invalid roll to combine";
 /**
  * Keeper of the best rolls with dice list result.
  * @tempalate [TYPE=number] The type of the rolled values.
@@ -164,7 +167,7 @@ export class KeepBestCombiner {
                 return result;
             }, []).map(index => (roll[index]));
         } else {
-            throw SyntaxError("Invalid roll to combine");
+            throw SyntaxError(INVALID_ROLL_MESSAGE);
         }
     }
 }
@@ -230,7 +233,7 @@ export class KeepWorstCombiner {
                 return result;
             }, []).map(index => (roll[index]));
         } else {
-            throw SyntaxError("Invalid roll to combine");
+            throw SyntaxError(INVALID_ROLL_MESSAGE);
         }
     }
 }
@@ -244,10 +247,135 @@ export class KeepWorstCombiner {
 export const KeepNew = Object.freeze({
     description: "Chooses the most recent value",
     combine(roll) {
-        if (Array.isArray(roll) && roll.leength > 0) {
+        if (Array.isArray(roll) && roll.length > 0) {
             return roll[roll.length - 1];
         } else {
-            throw SyntaxError("Invalid roll to cobmine");
+            throw SyntaxError(INVALID_ROLL_MESSAGE);
         }
     }
 });
+
+/**
+ * @template [TYPE]
+ * @type {RerollingPolicy<TYPE, TYPE[]>}
+ */
+const KeepSingleBestCombiner = new KeepBestCombiner(1);
+
+/**
+ * The combiner choosing the best value roll.
+ * @template TYPE The type of the die values. 
+ * @type {RerollPolicy<TYPE>}
+ */
+export const KeepBest = Object.freeze(
+    {
+        description: "Chooses the best of the values",
+        combine(roll) {
+            if (Array.isArray(roll) && roll.length > 0) {
+                return KeepSingleBestCombiner.combine(roll)[0];
+            } else {
+                throw SyntaxError(INVALID_ROLL_MESSAGE);
+            }
+        }
+    }
+)
+
+/**
+ * @template [TYPE]
+ * @type {RerollPolicy<TYPE, TYPE[]>}
+ */
+const KeepSingleWorstCombiner = new KeepWorstCombiner(1);
+
+/**
+ * The combiner choosing the best value roll.
+ * @template TYPE The type of the die values. 
+ * @type {RerollPolicy<TYPE>}
+ */
+export const KeepWorst = Object.freeze(
+    {
+        description: "Chooses the best of the values",
+        combine(roll) {
+            if (Array.isArray(roll) && roll.length > 0) {
+                return KeepSingleWorstCombiner.combine(roll)[0];
+            } else {
+                throw SyntaxError(INVALID_ROLL_MESSAGE);
+            }
+        }
+    }
+)
+
+/**
+ * Roll result is a dice pool. 
+ * @template [TYPE=number]
+ * @template [RESULT=TYPE[]]
+ * @implements {import("./die.mjs").RollResult<TYPE, RESULT>}
+ * @implements {import("./die.mjs").DicePool<TYPE, RESULT>}
+ */
+export class RerollResult {
+
+
+    /**
+     * Creat a new roll result.
+     * @param {*} result 
+     */
+    constructor(result) {
+        this.#result = result;
+    }
+
+    /**
+     * @type {RESULT}
+     */
+    #result;
+
+    get result() {
+        return this.#result;
+    }
+}
+
+/**
+ * 
+ */
+export class PartialRerollResult {
+
+
+    get missing() {
+
+    }
+
+    /**
+     * 
+     * @param {PartialRerollResult<TYPE>|RerollResult<TYPE[]>} indices 
+     */
+    combine(indices) {
+
+    }
+}
+
+/**
+ * The partial reroller requires determining the indice or indices to become the result.
+ */
+export class PartialReroller {
+
+    /**
+     * 
+     * @param {RerollPolicy<TYPE, TYPE[]>} rerollPolicy The policy generating the base result. 
+     * @param {PositiveInteger} [userSelected=1] The number of results user selects.
+     */
+    constructor(rerollPolicy, userSelected=checkInteger(1)) {
+
+    }
+
+    partialCombine(roll) {
+        return PartialReroller(fixed, )
+    }
+
+    /**
+     * Generate the reroll result.
+     * @param {TYPE[]} roll The original roll. 
+     * @param {(ZeroInteger|PositiveInteger)[]} userSelected The user selected indexes from the roll.
+     * @returns {TYPE[]} The result with user selected values.
+     */
+    combine(roll, userSelected) {
+        
+    }
+
+}

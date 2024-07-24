@@ -25,6 +25,7 @@
  * @typedef {Object} RollResultProperties
  * @property {Readonly<number>} length The number of results from which the roll is composed.
  * @property {Readonly<Die<TYPE>|DicePool<any, TYPE[]>[]>} members The members of the roll grouped into the sub results.
+ * @property {Readonly<RESULT>} result The result value.
  * @property {boolean} [rerollable=false] Is the result rerollable.
  */
 
@@ -33,10 +34,16 @@
  * @template [TYPE=number]
  * @template [RESULT=TYPE[]]
  * @typedef {Object} RollResultMethods
- * @property {Readonly<Supplier<RollResult<TYPE, RESULT>>} reroll Create a new dice pool by rerolling some or all dice.
- * @property {Readonly<RESULT>} [valueOf] Get the value of the roll. Defaults to the value of the result. This may
- * throw an exception, if the value is not a primitive value, and primitive value is wanted.
- * @property {Readonly<Supplier<string>>} [toString] The ring representation of the result. 
+ * @property {Supplier<RollResult<TYPE, RESULT>} reroll Create a new dice pool by rerolling some or all dice.
+ * @property {(index: number, newValue: Readonly<Die<TYPE>|DicePool<any, TYPE[]>>) => RollResult<TYPE, RESULT>} replace Returns a new result
+ * with given member replaced with a new value.
+ * @property {(startIndex: number, deleteCount: number=0, replacement: Readonly<Array<Readonly<Die<TYPE>|DicePool<any, TYPE[]>>>>=[]) => RollResult<TYPE, RESULT>} splice Generate
+ * a new roll result by replacing delete count number of members from start index with replacement.
+ * @property {(startIndex: number, endIndex: number|undefined)=>RollResult<TYPE, RESULT>} slice Create a new roll result by picking results from start index to 
+ * the end index (or end of the members) as result members.
+ * @property {Supplier(Readonly<RESULT>)} [valueOf] Get the value of the roll. This throws an exception, if the result
+ * is not a primitive value.
+ * @property {Supplier<Readonly<string>>} [toString] The String representation of the result. 
  */
 
 /**
@@ -52,6 +59,60 @@
  * @template [RESULT=TYPE[]]
  * @typedef {RollResultProperties<TYPE> & RollResultMethods<TYPE, RESULT>} RollResult
  */
+
+/**
+ * A simple implementation of a roll result.
+ * @implements {RollResult<TYPE, RESULT>}
+ */
+export class SimpleRollResult {
+
+    /**
+     * Create a new rollr esult.
+     * @param {Readonly<Array<Die<TYPE>|DicePool<any, TYPE[]>>>} members 
+     * @param {import("./rerolling.mjs").ResultCombiner<TYPE, RESULT>} combiner The combiner combining roll result into result. 
+     */
+    constructor(members, combiner) {
+        this.#members = members;
+        this.#combiner = combiner;
+    }
+
+    #members;
+
+    #combiner;
+
+    /**
+     * @type {Readonly<Array<Readonly<Die<TYPE>|DicePool<any, TYPE[]>>>}
+     */
+    get members() {
+        return this.#members;
+    }
+
+
+    /**
+     * The combiner generating the result.
+     * @type {import("./rerolling.mjs").ResultCombiner<TYPE, RESULT>}
+     */
+    combiner(values) {
+        return this.#combiner(values);
+    }
+
+    get result() {
+        return this.combiner(this.members.reduce( (result, /** @type {Readonly<Die<TYPE>|DicePool<any, TYPE[]>>}*/ member) => (
+            result.push(...("members" in result)?result.members:[result])), /** @type {Array<Die<TYPE>,DicePool<any, TYPE>>} */ []))
+    }
+}
+
+/**
+ * A roll result which is also a dice pool.
+ * @extends {SimpleRollResult<TYPE, TYPE[]>}
+ * @implements {DicePool<TYPE>}
+ */
+export class RollResultDicePool extends SimpleRollResult {
+
+    constructor(members, combiner) {
+        super(members, combiner);
+    }
+}
 
 /**
  * Roll result supplier.
