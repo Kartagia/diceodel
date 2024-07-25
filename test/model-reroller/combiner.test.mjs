@@ -2,14 +2,21 @@
 import { expect } from "chai";
 import { DefaultComparison } from "../../src/comparison.mjs";
 import { KeepBestCombiner } from "../../src/rerolling.mjs";
-import { checkInteger } from "../../src/integer.mjs";
+import { checkInteger, checkNegativeInteger, checkPositiveInteger } from "../../src/integer.mjs";
 
+
+const HexDigitComparison = /** @type {Compare<number|string>}*/ (a, b) => (typeof a === typeof b ? DefaultComparison(a, b) : typeof a === "number" ? checkNegativeInteger(-1) : checkPositiveInteger(1));
 
 const testCases = [
     {
         name: "Single die (numbers)",
         construction: [checkInteger(1)],
         params: [3, 5, 2, 1, 0]
+    },
+    {
+        name: "Single die (hexadecimal)",
+        construction: [checkInteger(1),HexDigitComparison],
+        params: [3, 5, "F", 2, , "A", 0]
     }
 
 ];
@@ -35,9 +42,9 @@ describe("class KeepBestCombiner", function () {
             }
         });
         if (expected === undefined) {
-            return { ...testCase, tested: new KeepBestCombiner( ...params  ), exception: SyntaxError };
+            return { ...testCase, tested: new KeepBestCombiner(...params), exception: SyntaxError };
         } else {
-            return { ...testCase, tested: new KeepBestCombiner( ...params  ),expected: [expected]};
+            return { ...testCase, tested: new KeepBestCombiner(...params), expected: [expected] };
         }
     }).forEach((testCase, index) => {
         const testFunc = () => (testCase.tested.combine(testCase.params));
